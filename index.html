@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestor de Tareas</title>
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --secondary-color: #50E3C2;
+            --background-color: #f7f9fc;
+            --header-bg-color: #2c3e50;
+            --header-text-color: #ffffff;
+            --border-color: #d1d9e6;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-image: url('pexels-maxfrancis-2246476.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            width: 70%;
+            margin-left: 0;
+            padding-left: 15%;
+            height: 2px;
+
+        }    
+
+        
+        button {
+            margin: 10px 0;
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            
+        }
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background: transparent;
+            border-radius: 10px;
+            overflow: hidden;
+           
+            
+            
+            
+        }
+        th, td {
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 5px 10px;
+            text-align: left;
+            background: transparent;
+            color: #fff;
+            transition: background 0.3s, box-shadow 0.3s;
+            
+        }
+        th {
+            background-color: rgba(44, 62, 80, 0.9);
+            color: var(--header-text-color);
+            font-weight: 600;
+            
+        }
+        tr:hover td {
+            background-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        th:nth-child(1), td:nth-child(1) { width: 6%; }
+        th:nth-child(2), td:nth-child(2) { width: 0%; }
+        th:nth-child(3), td:nth-child(3) { width: 13%; }
+        th:nth-child(4), td:nth-child(4) { width: 6%; }
+        th:nth-child(5), td:nth-child(5) { width: 5%; }
+        th:nth-child(6), td:nth-child(6) { width: 7%; }
+        th:nth-child(7), td:nth-child(7) { width: 8%; }
+        th:nth-child(8), td:nth-child(8) { width: 35%; }
+        .rojo { background-color: rgba(77, 161, 187, 0.486); }
+        .naranja { background-color: rgba(211, 112, 31, 0.473); }
+        .verde { background-color: rgba(155, 189, 160, 0); }
+        .azul { background-color: transparent; }
+        .gris { background-color: transparent; }
+        input[type="date"], input[type="text"] {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 6px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: rgb(255, 255, 255);
+            color: #000000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+    <h1>Gestor de Tareas</h1>
+
+    <button id="btnAdd">Agregar Nueva Fila</button>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha de Entrada</th>
+                <th>Fecha de Follow Up</th>
+                <th>Nombre</th>
+                <th>Liability BI</th>
+                <th>UM</th>
+                <th>Balance</th>
+                <th>Estado</th>
+                <th>Nota</th>
+            </tr>
+        </thead>
+        <tbody id="tablaBody">
+        </tbody>
+    </table>
+
+    <script>
+        let tareas = [];
+
+        function loadTasks() {
+            const saved = localStorage.getItem('tareas');
+            tareas = saved ? JSON.parse(saved) : [];
+            tareas.forEach((t, i) => appendRow(t, i));
+            createBlankRow();
+        }
+
+        function saveTasks() {
+            localStorage.setItem('tareas', JSON.stringify(tareas));
+        }
+
+        function appendRow(tarea, index) {
+            const tbody = document.getElementById('tablaBody');
+            const tr = document.createElement('tr');
+            tr.dataset.index = index;
+
+            const fields = ['fechaEntrada', 'fechaFollowUp', 'nombre', 'liabilityBI', 'um', 'balance', 'estado', 'nota'];
+
+            fields.forEach(field => {
+                const td = document.createElement('td');
+                if (field === 'fechaEntrada') {
+                    td.textContent = tarea[field];
+                } else {
+                    const input = document.createElement('input');
+                    input.type = field === 'fechaFollowUp' ? 'date' : 'text';
+                    input.value = tarea[field] || '';
+                    input.dataset.field = field;
+                    input.onchange = () => handleChange(input);
+                    td.appendChild(input);
+                }
+                tr.appendChild(td);
+            });
+
+            tbody.appendChild(tr);
+
+            const followUpInput = tr.querySelector('input[data-field="fechaFollowUp"]');
+            if (followUpInput) updateRow(followUpInput);
+        }
+
+        function handleChange(input) {
+            const tr = input.closest('tr');
+            const idx = parseInt(tr.dataset.index, 10);
+            tareas[idx][input.dataset.field] = input.value;
+            saveTasks();
+            if (input.dataset.field === 'fechaFollowUp') updateRow(input);
+        }
+
+        function createBlankRow() {
+            const tbody = document.getElementById('tablaBody');
+            const tr = document.createElement('tr');
+            tr.id = 'blankRow';
+
+            const fields = ['fechaEntrada', 'fechaFollowUp', 'nombre', 'liabilityBI', 'um', 'balance', 'estado', 'nota'];
+
+            fields.forEach(field => {
+                const td = document.createElement('td');
+                if (field === 'fechaEntrada') {
+                    td.textContent = '';
+                } else {
+                    const input = document.createElement('input');
+                    input.type = field === 'fechaFollowUp' ? 'date' : 'text';
+                    input.placeholder = field.charAt(0).toUpperCase() + field.slice(1);
+                    input.dataset.field = field;
+                    td.appendChild(input);
+                    input.onchange = () => handleNew(input);
+                }
+                tr.appendChild(td);
+            });
+
+            tbody.appendChild(tr);
+        }
+
+        function handleNew(input) {
+            const tr = document.getElementById('blankRow');
+            const inputs = tr.querySelectorAll('input');
+            const vals = Array.from(inputs).map(i => i.value);
+            if (!vals[0] || !vals[1] || !vals[2]) return;
+
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+
+            const nueva = {
+                fechaEntrada: hoy.toISOString().split('T')[0],
+                fechaFollowUp: vals[0],
+                nombre: vals[1],
+                liabilityBI: vals[2],
+                um: vals[3],
+                balance: vals[4],
+                estado: vals[5],
+                nota: vals[6] || ''
+            };
+
+            tareas.push(nueva);
+            saveTasks();
+            tr.remove();
+            appendRow(nueva, tareas.length - 1);
+            createBlankRow();
+        }
+
+        function updateRow(input) {
+            const date = new Date(input.value);
+            date.setHours(0, 0, 0, 0);
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            const diff = (date - hoy) / (1000 * 60 * 60 * 24);
+            const tr = input.closest('tr');
+            tr.classList.remove('rojo', 'naranja', 'verde', 'azul', 'gris');
+
+            if (diff < 0) {
+                tr.classList.add('rojo');
+            } else if (diff === 0) {
+                tr.classList.add('naranja');
+            } else if (diff >= 1) {
+                tr.classList.add('verde');
+            }
+        }
+
+        document.getElementById('btnAdd').onclick = function() {
+            createBlankRow();
+        };
+
+        window.addEventListener('DOMContentLoaded', loadTasks);
+    </script>
+    </div>
+    
+</body>
+</html>
